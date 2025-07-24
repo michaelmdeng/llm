@@ -425,7 +425,7 @@ class Conversation(_BaseConversation):
         system_fragments: Optional[List[str]] = None,
         stream: bool = True,
         key: Optional[str] = None,
-        **options,
+        options: Optional[dict] = None,
     ) -> "Response":
         return Response(
             Prompt(
@@ -438,7 +438,7 @@ class Conversation(_BaseConversation):
                 tools=tools or self.tools,
                 tool_results=tool_results,
                 system_fragments=system_fragments,
-                options=self.model.Options(**options),
+                options=self.model.Options(**(options or {})),
             ),
             self.model,
             stream,
@@ -562,7 +562,7 @@ class AsyncConversation(_BaseConversation):
         system_fragments: Optional[List[str]] = None,
         stream: bool = True,
         key: Optional[str] = None,
-        **options,
+        options: Optional[dict] = None,
     ) -> "AsyncResponse":
         return AsyncResponse(
             Prompt(
@@ -575,7 +575,7 @@ class AsyncConversation(_BaseConversation):
                 tools=tools,
                 tool_results=tool_results,
                 system_fragments=system_fragments,
-                options=self.model.Options(**options),
+                options=self.model.Options(**(options or {})),
             ),
             self.model,
             stream,
@@ -1807,9 +1807,9 @@ class _Model(_BaseModel):
         schema: Optional[Union[dict, type[BaseModel]]] = None,
         tools: Optional[List[ToolDef]] = None,
         tool_results: Optional[List[ToolResult]] = None,
-        **options,
+        key: Optional[str] = None,
+        options: Optional[dict] = None,
     ) -> Response:
-        key_value = options.pop("key", None)
         self._validate_attachments(attachments)
         return Response(
             Prompt(
@@ -1822,11 +1822,11 @@ class _Model(_BaseModel):
                 tool_results=tool_results,
                 system_fragments=system_fragments,
                 model=self,
-                options=self.Options(**options),
+                options=self.Options(**(options or {})),
             ),
             self,
             stream,
-            key=key_value,
+            key=key,
         )
 
     def chain(
