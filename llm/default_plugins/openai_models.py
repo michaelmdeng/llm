@@ -692,6 +692,7 @@ class _Shared:
         supports_schema=False,
         supports_tools=False,
         allows_system_prompt=True,
+        max_retries=5,
     ):
         self.model_id = model_id
         self.key = key
@@ -706,6 +707,7 @@ class _Shared:
         self.can_stream = can_stream
         self.vision = vision
         self.allows_system_prompt = allows_system_prompt
+        self.max_retries = max_retries
 
         self.attachment_types = set()
 
@@ -849,6 +851,8 @@ class _Shared:
             kwargs["api_key"] = "DUMMY_KEY"
         if self.headers:
             kwargs["default_headers"] = self.headers
+        if self.max_retries:
+            kwargs["max_retries"] = self.max_retries
         if os.environ.get("LLM_OPENAI_SHOW_RESPONSES"):
             kwargs["http_client"] = logging_client()
         if async_:

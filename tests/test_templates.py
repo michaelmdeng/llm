@@ -140,6 +140,18 @@ def test_templates_list(templates_path, args):
             },
             None,
         ),
+        # Explicit chain limit should be persisted, including 0 for unlimited
+        (
+            ["--chain-limit", "0", "hello"],
+            {"prompt": "hello", "chain_limit": 0},
+            None,
+        ),
+        # tools_debug_mode should persist its string value, not a boolean
+        (
+            ["--tools-debug-mode", "short", "hello"],
+            {"prompt": "hello", "tools_debug_mode": "short"},
+            None,
+        ),
         # Model option using an enum: https://github.com/simonw/llm/issues/1237
         (
             ["-m", "gpt-5", "-o", "reasoning_effort", "minimal"],

@@ -26,6 +26,10 @@ class Template(BaseModel):
     system_fragments: Optional[List[str]] = None
     tools: Optional[List[str]] = None
     functions: Optional[str] = None
+    tools_debug: Optional[bool] = None
+    tools_debug_mode: Optional[str] = None
+    tools_approve: Optional[bool] = None
+    chain_limit: Optional[int] = None
 
     model_config = ConfigDict(extra="forbid")
 
