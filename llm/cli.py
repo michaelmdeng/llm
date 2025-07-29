@@ -1,5 +1,6 @@
 import asyncio
 import click
+from click.core import ParameterSource
 from click_default_group import DefaultGroup
 from dataclasses import asdict
 from importlib.metadata import version
@@ -476,7 +477,9 @@ def cli():
     is_flag=True,
     help="Extract last fenced code block",
 )
+@click.pass_context
 def prompt(
+    ctx,
     prompt,
     system,
     model_id,
@@ -636,6 +639,12 @@ def prompt(
             to_save["functions"] = "\n\n".join(python_tools)
         if tools:
             to_save["tools"] = list(tools)
+        if tools_debug:
+            to_save["tools_debug"] = True
+        if tools_approve:
+            to_save["tools_approve"] = True
+        if chain_limit and ctx.get_parameter_source('chain_limit') != ParameterSource.DEFAULT:
+            to_save["chain_limit"] = chain_limit
         if attachments:
             # Only works for attachments with a path or url
             to_save["attachments"] = [
@@ -691,6 +700,12 @@ def prompt(
             tools = [*template_obj.tools, *tools]
         if template_obj.functions and template_obj._functions_is_trusted:
             python_tools = [template_obj.functions, *python_tools]
+        if template_obj.tools_debug and ctx.get_parameter_source('tools_debug') == ParameterSource.DEFAULT:
+            tools_debug = template_obj.tools_debug
+        if template_obj.tools_approve and ctx.get_parameter_source('tools_approve') == ParameterSource.DEFAULT:
+            tools_approve = template_obj.tools_approve
+        if template_obj.chain_limit and ctx.get_parameter_source('chain_limit') == ParameterSource.DEFAULT:
+            chain_limit = template_obj.chain_limit
         input_ = ""
         if template_obj.options:
             # Make options mutable (they start as a tuple)
@@ -1019,7 +1034,9 @@ def prompt(
     default=5,
     help="How many chained tool responses to allow, default 5, set 0 for unlimited",
 )
+@click.pass_context
 def chat(
+    ctx,
     system,
     model_id,
     _continue,
@@ -1077,6 +1094,12 @@ def chat(
             tools = [*template_obj.tools, *tools]
         if template_obj.functions and template_obj._functions_is_trusted:
             python_tools = [template_obj.functions, *python_tools]
+        if template_obj.tools_debug and ctx.get_parameter_source('tools_debug') == ParameterSource.DEFAULT:
+            tools_debug = template_obj.tools_debug
+        if template_obj.tools_approve and ctx.get_parameter_source('tools_approve') == ParameterSource.DEFAULT:
+            tools_approve = template_obj.tools_approve
+        if template_obj.chain_limit and ctx.get_parameter_source('chain_limit') == ParameterSource.DEFAULT:
+            chain_limit = template_obj.chain_limit
 
     # Figure out which model we are using
     if model_id is None:
@@ -1119,6 +1142,8 @@ def chat(
     if validated_options:
         kwargs["options"] = validated_options
 
+    tools = list(tools) + template_obj.tools
+    tools = list(set(tools))
     tool_functions = _gather_tools(tools, python_tools)
 
     if tool_functions:
