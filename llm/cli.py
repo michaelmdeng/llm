@@ -1247,7 +1247,8 @@ def chat(
         for chunk in response:
             print(chunk, end="")
             sys.stdout.flush()
-        response.log_to_db(db)
+        if logs_on():
+            response.log_to_db(db)
         print("")
 
 
