@@ -1128,8 +1128,8 @@ def chat(
     if validated_options:
         kwargs["options"] = validated_options
 
-    tools = list(tools) + template_obj.tools
-    tools = list(set(tools))
+    if template_obj:
+        tools = list(set(list(tools) + template_obj.tools))
     tool_functions = _gather_tools(tools, python_tools)
 
     if tool_functions:
