@@ -132,7 +132,7 @@ def multiply(x: int, y: int) -> int:
     return x * y
 ' 'what is 34234 * 213345'
 ```
-Add `--td/--tools-debug` to see full details of the tools that are being executed. You can also set the `LLM_TOOLS_DEBUG` environment variable to `1` to enable this for all prompts.
+Add `--td/--tools-debug` to see details of the tools that are being executed. You can also set the `LLM_TOOLS_DEBUG` environment variable to `1` to enable this for all prompts. `--tools-debug-mode` controls how the debug details are shown -- use `short` for truncated output and `full` for full output.
 ```bash
 llm --functions '
 def multiply(x: int, y: int) -> int:
