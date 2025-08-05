@@ -394,6 +394,12 @@ def cli():
     envvar="LLM_TOOLS_DEBUG",
 )
 @click.option(
+    "tools_debug_mode",
+    "--tools-debug-mode",
+    type=str,
+    help="Control output of debugging tool executions, must be set with `tools_debug`",
+)
+@click.option(
     "tools_approve",
     "--ta",
     "--tools-approve",
@@ -485,6 +491,7 @@ def prompt(
     tools,
     python_tools,
     tools_debug,
+    tools_debug_mode,
     tools_approve,
     chain_limit,
     options,
@@ -636,6 +643,8 @@ def prompt(
             to_save["tools"] = list(tools)
         if tools_debug:
             to_save["tools_debug"] = True
+        if tools_debug_mode:
+            to_save["tools_debug_mode"] = True
         if tools_approve:
             to_save["tools_approve"] = True
         if chain_limit:
@@ -695,6 +704,8 @@ def prompt(
             python_tools = [template_obj.functions, *python_tools]
         if template_obj.tools_debug and ctx.get_parameter_source('tools_debug') == ParameterSource.DEFAULT:
             tools_debug = template_obj.tools_debug
+        if template_obj.tools_debug_mode and ctx.get_parameter_source('tools_debug_mode') == ParameterSource.DEFAULT:
+            tools_debug_mode = template_obj.tools_debug_mode
         if template_obj.tools_approve and ctx.get_parameter_source('tools_approve') == ParameterSource.DEFAULT:
             tools_approve = template_obj.tools_approve
         if template_obj.chain_limit and ctx.get_parameter_source('chain_limit') == ParameterSource.DEFAULT:
@@ -835,7 +846,10 @@ def prompt(
         prompt_method = conversation.chain
         kwargs["chain_limit"] = chain_limit
         if tools_debug:
-            kwargs["after_call"] = _debug_tool_call
+            if tools_debug_mode and tools_debug_mode.lower() == "short":
+                kwargs["after_call"] = _debug_tool_call_short
+            else:
+                kwargs["after_call"] = _debug_tool_call
         if tools_approve:
             kwargs["before_call"] = _approve_tool_call
         kwargs["tools"] = tool_implementations
@@ -1010,6 +1024,12 @@ def prompt(
     envvar="LLM_TOOLS_DEBUG",
 )
 @click.option(
+    "tools_debug_mode",
+    "--tools-debug-mode",
+    type=str,
+    help="Control output of debugging tool executions, must be set with `tools_debug`",
+)
+@click.option(
     "tools_approve",
     "--ta",
     "--tools-approve",
@@ -1042,6 +1062,7 @@ def chat(
     tools,
     python_tools,
     tools_debug,
+    tools_debug_mode,
     tools_approve,
     chain_limit,
 ):
@@ -1082,6 +1103,8 @@ def chat(
             model_id = template_obj.model
         if template_obj.tools_debug and ctx.get_parameter_source('tools_debug') == ParameterSource.DEFAULT:
             tools_debug = template_obj.tools_debug
+        if template_obj.tools_debug_mode and ctx.get_parameter_source('tools_debug_mode') == ParameterSource.DEFAULT:
+            tools_debug_mode = template_obj.tools_debug_mode
         if template_obj.tools_approve and ctx.get_parameter_source('tools_approve') == ParameterSource.DEFAULT:
             tools_approve = template_obj.tools_approve
         if template_obj.chain_limit and ctx.get_parameter_source('chain_limit') == ParameterSource.DEFAULT:
@@ -1108,7 +1131,10 @@ def chat(
         conversation.model = model
 
     if tools_debug:
-        conversation.after_call = _debug_tool_call
+        if tools_debug_mode and tools_debug_mode.lower() == "short":
+            conversation.after_call = _debug_tool_call_short
+        else:
+            conversation.after_call = _debug_tool_call
     if tools_approve:
         conversation.before_call = _approve_tool_call
 
@@ -3947,6 +3973,63 @@ def _tools_from_code(code_or_path: str) -> List[Tool]:
         if callable(value) and not name.startswith("_"):
             tools.append(Tool.function(value))
     return tools
+
+
+def _debug_tool_call_short(_, tool_call, tool_result):
+    MAX_ARG_LENGTH = 35
+    MAX_OUTPUT_LINES = 7
+
+    shortened_args = {}
+    for k, v in tool_call.arguments.items():
+        shortened_v = str(v)
+        if len(shortened_v) > MAX_ARG_LENGTH:
+            shortened_v = shortened_v[:MAX_ARG_LENGTH - 3] + "..."
+        else:
+            shortened_v = v
+        shortened_args[k] = shortened_v
+
+    click.echo(
+        click.style(
+            "\nTool call: {}({})".format(tool_call.name, shortened_args),
+            fg="yellow",
+            bold=True,
+        ),
+        err=True,
+    )
+    output = ""
+    attachments = ""
+    if tool_result.attachments:
+        attachments += "\nAttachments:\n"
+        for attachment in tool_result.attachments:
+            attachments += f"  {repr(attachment)}\n"
+
+    try:
+        output = json.dumps(json.loads(tool_result.output), indent=2)
+    except ValueError:
+        output = tool_result.output
+
+    n_lines = len(output.split('\n'))
+    if n_lines > MAX_OUTPUT_LINES:
+        output = '\n'.join(output.split('\n')[:MAX_OUTPUT_LINES]) + f"\n... ({n_lines - MAX_OUTPUT_LINES} more lines)"
+
+    output += attachments
+    click.echo(
+        click.style(
+            textwrap.indent(output, "  ") + ("\n" if not tool_result.exception else ""),
+            fg="green",
+            bold=True,
+        ),
+        err=True,
+    )
+    if tool_result.exception:
+        click.echo(
+            click.style(
+                "  Exception: {}".format(tool_result.exception),
+                fg="red",
+                bold=True,
+            ),
+            err=True,
+        )
 
 
 def _debug_tool_call(_, tool_call, tool_result):
