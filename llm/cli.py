@@ -652,7 +652,10 @@ def prompt(
             to_save["tools_debug_mode"] = True
         if tools_approve:
             to_save["tools_approve"] = True
-        if chain_limit and ctx.get_parameter_source('chain_limit') != ParameterSource.DEFAULT:
+        if (
+            chain_limit
+            and ctx.get_parameter_source("chain_limit") != ParameterSource.DEFAULT
+        ):
             to_save["chain_limit"] = chain_limit
         if attachments:
             # Only works for attachments with a path or url
@@ -709,13 +712,25 @@ def prompt(
             tools = [*template_obj.tools, *tools]
         if template_obj.functions and template_obj._functions_is_trusted:
             python_tools = [template_obj.functions, *python_tools]
-        if template_obj.tools_debug and ctx.get_parameter_source('tools_debug') == ParameterSource.DEFAULT:
+        if (
+            template_obj.tools_debug
+            and ctx.get_parameter_source("tools_debug") == ParameterSource.DEFAULT
+        ):
             tools_debug = template_obj.tools_debug
-        if template_obj.tools_debug_mode and ctx.get_parameter_source('tools_debug_mode') == ParameterSource.DEFAULT:
+        if (
+            template_obj.tools_debug_mode
+            and ctx.get_parameter_source("tools_debug_mode") == ParameterSource.DEFAULT
+        ):
             tools_debug_mode = template_obj.tools_debug_mode
-        if template_obj.tools_approve and ctx.get_parameter_source('tools_approve') == ParameterSource.DEFAULT:
+        if (
+            template_obj.tools_approve
+            and ctx.get_parameter_source("tools_approve") == ParameterSource.DEFAULT
+        ):
             tools_approve = template_obj.tools_approve
-        if template_obj.chain_limit and ctx.get_parameter_source('chain_limit') == ParameterSource.DEFAULT:
+        if (
+            template_obj.chain_limit
+            and ctx.get_parameter_source("chain_limit") == ParameterSource.DEFAULT
+        ):
             chain_limit = template_obj.chain_limit
         input_ = ""
         if template_obj.options:
@@ -1115,13 +1130,25 @@ def chat(
             tools = [*template_obj.tools, *tools]
         if template_obj.functions and template_obj._functions_is_trusted:
             python_tools = [template_obj.functions, *python_tools]
-        if template_obj.tools_debug and ctx.get_parameter_source('tools_debug') == ParameterSource.DEFAULT:
+        if (
+            template_obj.tools_debug
+            and ctx.get_parameter_source("tools_debug") == ParameterSource.DEFAULT
+        ):
             tools_debug = template_obj.tools_debug
-        if template_obj.tools_debug_mode and ctx.get_parameter_source('tools_debug_mode') == ParameterSource.DEFAULT:
+        if (
+            template_obj.tools_debug_mode
+            and ctx.get_parameter_source("tools_debug_mode") == ParameterSource.DEFAULT
+        ):
             tools_debug_mode = template_obj.tools_debug_mode
-        if template_obj.tools_approve and ctx.get_parameter_source('tools_approve') == ParameterSource.DEFAULT:
+        if (
+            template_obj.tools_approve
+            and ctx.get_parameter_source("tools_approve") == ParameterSource.DEFAULT
+        ):
             tools_approve = template_obj.tools_approve
-        if template_obj.chain_limit and ctx.get_parameter_source('chain_limit') == ParameterSource.DEFAULT:
+        if (
+            template_obj.chain_limit
+            and ctx.get_parameter_source("chain_limit") == ParameterSource.DEFAULT
+        ):
             chain_limit = template_obj.chain_limit
 
     # Figure out which model we are using
@@ -4019,7 +4046,7 @@ def _debug_tool_call_short(_, tool_call, tool_result):
     for k, v in tool_call.arguments.items():
         shortened_v = str(v)
         if len(shortened_v) > MAX_ARG_LENGTH:
-            shortened_v = shortened_v[:MAX_ARG_LENGTH - 3] + "..."
+            shortened_v = shortened_v[: MAX_ARG_LENGTH - 3] + "..."
         else:
             shortened_v = v
         shortened_args[k] = shortened_v
@@ -4044,9 +4071,12 @@ def _debug_tool_call_short(_, tool_call, tool_result):
     except ValueError:
         output = tool_result.output
 
-    n_lines = len(output.split('\n'))
+    n_lines = len(output.split("\n"))
     if n_lines > MAX_OUTPUT_LINES:
-        output = '\n'.join(output.split('\n')[:MAX_OUTPUT_LINES]) + f"\n... ({n_lines - MAX_OUTPUT_LINES} more lines)"
+        output = (
+            "\n".join(output.split("\n")[:MAX_OUTPUT_LINES])
+            + f"\n... ({n_lines - MAX_OUTPUT_LINES} more lines)"
+        )
 
     output += attachments
     click.echo(

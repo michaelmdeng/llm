@@ -55,7 +55,6 @@ dev = [
     "pytest-recording",
     "ruff",
     "syrupy",
-    "types-click",
     "types-PyYAML",
     "types-setuptools",
     "llm-echo==0.3a3",
